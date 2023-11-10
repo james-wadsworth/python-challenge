@@ -1,126 +1,89 @@
-#!/usr/bin/env python
-# coding: utf-8
+# Import module to allow creation of file path across operating systems
+import os
 
-# In[27]:
+# Import module for reading CSV files
+import csv
 
+# Store the file path to the data file for PyBank
+csvpath = os.path.join('Resources', 'budget_data.csv')
 
-# Import Pandas
-import pandas as pd
-import locale
+# Open the file to read it and process the data with python
+with open(csvpath, newline='') as csvfile:
 
-
-# In[2]:
-
-
-# Initialize a variable to hold the file path to the PyBank csv file
-csvpath = "Resources/budget_data.csv"
-csvpath
-
-
-# In[17]:
+    # Create variable to hold the reader object 
+    # (this is something that allows us to iterate over lines in the given csv file. 
+    # Could be a list as well as a file, but this happens to be a file)
+    csvreader = csv.reader(csvfile, delimiter=",")
 
 
-# Create a pandas dataframe from the csv data
-budget_file_df = pd.read_csv(csvpath, encoding="UTF-8")
+    # Read and show me the header row so I can get my bearings when it comes to this data file
+    csv_header = next(csvreader)
 
-#Check that the dataframe was properly created
-budget_file_df.head(5)
+    # Show me the contents of the data file head or in other words, list the column names out for me
 
+    # Create an empty list to hold the months
+    months = []
 
-# In[32]:
+    # Create empty list to hold the Profit/Losses column data
+    net_profit = []
 
+    # Iterate through the rows
+    for row in csvreader:
 
-# Count the total number of months for which there is data in the file
-total_months = budget_file_df["Date"].count()
-total_months
+        # Add Date items to the months list
+        months.append(row[0])
 
+        # Add Profit/Losses data items to the net_profit list
+        net_profit.append(int(row[1]))
 
-# In[5]:
+    # Calculate the total number of months in the dataset by finding the number of items in the month list and printing it
+    total_months = len(months)
+    
 
+    # Calculate the total net profit by adding up the data for each month and then print it.
+    total_np = sum(net_profit)
+    
 
-# Calculate the total net profit in the Profit/Losses column for the entire period
-net_profit = budget_file_df["Profit/Losses"].sum()
-net_profit
+    # Find the average month over month change in net profit
+    
+    # Loop through the list and calculate the change at each interval
+    # Create an empty list to hold the changes
+    change = []
 
+    # Loop through the net_profit list starting at the second item (skip the header)
+    for i in range(1,len(net_profit)):
+    
+        # Add each calculated change into the empty change list as an integer
+        change.append(int(net_profit[i] - net_profit[i - 1]))
 
-# In[19]:
+    # Calculate the average change and store it in a variable
+    average_change = sum(change) / len(change)
 
+    # Find the max month-over-month change
+    max = max(change)
 
-# Find the average month-over-month change in Profit / Losses
-# First, create a new column in the dataframe that shifts Profit/Losses up by one month to allow for ease of calculation
-budget_file_df["Next Month"] = budget_file_df["Profit/Losses"].shift(-1)
-budget_file_df.head()
+    # Find the min
+    min = min(change)
 
+    # Find the index of the min and add 1 to get the index of the correct date
+    index_spot_min = change.index(min) + 1
+    index_spot_max = change.index(max) + 1
 
-# In[20]:
+    # Print everything cleanly to summarize
 
+    print(
+        f'Financial Analysis\n'
+          
+        f'--------------------------------------- \n\n'
 
-# Create another column that calculates the month-over-month change in Profit/Losses holds the change
-budget_file_df["Delta"] = budget_file_df["Next Month"] - budget_file_df["Profit/Losses"]
-budget_file_df.head()
+        f'Total Months : {total_months} \n\n'
+          
+        f'Total: {total_np} \n\n'
+          
+        f'Average Change: {average_change} \n\n'
+          
+        f'Greatest Increase in Profits: {months[index_spot_max]} ${max} \n\n'
 
-
-# In[23]:
-
-
-# Find the average change, or "Delta"
-average = budget_file_df["Delta"].mean()
-average
-
-
-# In[24]:
-
-
-# Find the greatest increase between months in "Profit/Losses"
-increase = budget_file_df["Delta"].max()
-increase
-
-
-# In[25]:
-
-
-# Find the greatest decrease between months in "Profit/Losses"
-decrease = budget_file_df["Delta"].min()
-decrease
-
-
-# In[34]:
-
-
-# Create a new summary dataframe that holds and displays the summary information about the PyBank budget file
-Summary_df = pd.DataFrame({"Summary":
-              ["Total Months", "Total Net Profit", 
-               "Average Monthly Change", 
-               "Greatest MoM Increase in Profits", 
-               "Greatest MoM Decrease in Profits"], 
-              "Amount": 
-              [total_months,
-               net_profit, average, 
-               increase, 
-              decrease]})
-
-# Set the index
-Summary_df.set_index("Summary", inplace=True)
-
-# Set the locale to US to be able to format data as USD
-locale.setlocale(locale.LC_ALL, "en_US.UTF-8")
-
-# Apply the local to the Amount column to format it as USD
-Summary_df["Amount"] = Summary_df.apply(lambda row: 
-                                        locale.currency(row["Amount"], grouping=True) 
-                 if row.name != 1 else row["Amount"], axis=1)
-
-Summary_df
-
-
-# In[35]:
-
-
-# Export this table as a text file
-
-# First set the file path
-file_path = "summary.csv"
-
-# Export the summary dataframe to this file
-Summary_df.to_csv(file_path), index=False, encoding="en_US.UTF-8")
-
+        f'Greatest Decrease in Profits: {months[index_spot_min]} ${min} \n\n'
+          
+          )
