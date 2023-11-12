@@ -1,60 +1,65 @@
-#!/usr/bin/env python
-# coding: utf-8
+# import os to use for file path
+import os
 
-# In[1]:
+# Import the csv reading module
+import csv
 
+# Create variable to hold the csv path
+csvfile = os.path.join("Resources", "election_data.csv")
+print(csvfile)
 
-# Import Dependencies
-import pandas as pd
+# With the csv open, start doing things
+with open(csvfile) as csvfile:
 
+    # First bring in the whole file as an iterable object
+    csvreader = csv.reader(csvfile, delimiter=",")
+    
+    # Print out the column headers to get bearings
+    csv_header = next(csvreader)
+    print(csv_header)
 
-# In[2]:
+    # Calculate the total votes
 
+    # Initiatlize an empty list of votes
+    votes = []
+    candidates = []
 
-# Initialize a variable to hold the data file path
-csvpath = "Resources/election_data.csv"
-csvpath
+    # Loop through rows and count the first item in each row
+    for row in csvreader:
 
+        # Add the item to the empty vote list
+        votes.append(row[0])
+        candidates.append(row[2])
 
-# In[3]:
+    # Count total votes by using length of votes list
+    total_votes = len(votes)
+    unique_cand = list(set(candidates))
+    print(total_votes)
+    print((unique_cand))
 
+    # Find total votes for each candidate.
 
-# Create a dataframe from the csv file data, then check that it was created properly
-df = pd.read_csv(csvpath)
-df.head()
+    candidate1 = unique_cand[0]
+    candidate2 = unique_cand[1]
+    candidate3 = unique_cand[2]
 
+    candidate1_votes = []
+    candidate2_votes = []
+    candidate3_votes = []
 
-# In[4]:
+    for vote in candidates:
+        if vote == candidate1:
+            candidate1_votes.append(vote)
+        elif vote == candidate2:
+            candidate2_votes.append(vote)
+        elif vote == candidate3:
+            candidate3_votes.append(vote)
 
+    
+    print(len(candidate1_votes))
+    print(len(candidate2_votes))
+    print(len(candidate3_votes))
 
-# Count the total number of votes by counting the total of the candidate row
-total_votes = df["Candidate"].count()
-total_votes
-
-
-# In[10]:
-
-
-# Find a complete list of candidates who received votes, the total percentage and number of votes received by each
-# first print out the list of candidates and their vote totals. Convert that table to a dataframe
-vote_totals = df["Candidate"].value_counts()
-votes_df = pd.DataFrame(vote_totals)
-votes_df
-
-
-# In[12]:
-
-
-# Working within this dataframe, add a column that calculates the percentage of votes received by each candidate
-votes_df["Percentage of Vote"] = votes_df["Candidate"]/votes_df["Candidate"].sum() * 100
-votes_df
-
-
-# In[13]:
-
-
-# Export this to a text file
-# Set the file path
-file_path = "votes_analysis.txt"
-votes_df.to_csv(file_path)
+    # Percentage of the vote
+    
 
